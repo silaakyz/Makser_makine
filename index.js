@@ -1,31 +1,49 @@
-require('dotenv').config();
-const express = require('express');
-const { Pool } = require('pg');
+import express from "express";
+import pg from "pg";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 4000;
+app.use(express.json());
 
-const pool = new Pool({
-  connectionString: process.env.SUPABASE_DB_URL // Supabase -> Settings -> Database -> Connection string (service role user)
+const pool = new pg.Pool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false }
 });
 
-app.get('/schema', async (req, res) => {
+// Test endpoint
+app.get("/", async (req, res) => {
   try {
-    const sql = `
-      select table_name, json_agg(row_to_json(cols)) as columns
-      from (
-        select table_name, column_name, data_type, is_nullable, ordinal_position
-        from information_schema.columns
-        where table_schema = 'public'
-      ) cols
-      group by table_name;
-    `;
-    const { rows } = await pool.query(sql);
-    res.json(rows);
+    const result = await pool.query("SELECT NOW()");
+    res.json({
+      message: "Backend Çalışıyor 🔥",
+      time: result.rows[0].now
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'db error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.listen(port, () => console.log(`http://localhost:${port}`));
+// Örnek: bütün tabloları okumak
+app.get("/tables", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema='public'
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log("API çalışıyor: http://localhost:" + PORT);
+});
