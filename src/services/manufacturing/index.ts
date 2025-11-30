@@ -3,6 +3,7 @@
 import axios from 'axios';
 import type { Machine, RawMaterial, Product, ProductionOrder, OEEMetrics, Alert } from '@/modules/types';
 import { mockData } from './mockData';
+// Mevcut import'lardan sonra ekleyin
 
 const USE_MOCK = true; // Gerçek API için false yapın
 
