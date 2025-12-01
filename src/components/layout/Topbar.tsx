@@ -1,8 +1,29 @@
-import { Factory } from "lucide-react";
+import { Factory, LogOut, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { mockKPIs } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Topbar() {
+  const { user, userRole, signOut } = useAuth();
+  
+  const roleLabel = {
+    mudur: "Müdür",
+    personel: "Personel",
+    operator: "Operatör"
+  }[userRole || 'personel'];
+
+  const userInitials = user?.email?.substring(0, 2).toUpperCase() || "??";
+  
   const kpiData = [
     {
       title: "Üretim Verimliliği",
@@ -55,6 +76,40 @@ export function Topbar() {
             </Card>
           ))}
         </div>
+
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="gap-2 flex-shrink-0">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-left hidden md:block">
+                <p className="text-sm font-medium text-foreground">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Hesabım</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <User className="mr-2 h-4 w-4" />
+              <span>{user?.email}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled>
+              <span className="mr-2">👤</span>
+              <span>Rol: {roleLabel}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Çıkış Yap</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
