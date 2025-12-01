@@ -5,11 +5,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { mockFinansal } from "@/lib/mockData";
-import { DollarSign, TrendingUp, TrendingDown, Wrench, Download } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wrench, Download, AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Finansal() {
+  const { userRole, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Sadece müdür erişebilir
+  useEffect(() => {
+    if (!loading && userRole !== 'mudur') {
+      toast.error('Bu sayfaya erişim yetkiniz yok');
+      navigate('/');
+    }
+  }, [userRole, loading, navigate]);
+
+  // Yükleme sırasında veya yetki yoksa boş sayfa
+  if (loading || userRole !== 'mudur') {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center space-y-4">
+            <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
+            <h2 className="text-2xl font-bold text-foreground">Erişim Engellendi</h2>
+            <p className="text-muted-foreground">Bu sayfaya erişim yetkiniz bulunmamaktadır.</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   const toplamGelir = mockFinansal.urunKarliligi.reduce(
     (sum, u) => sum + (u.satis * u.miktar), 0
   );

@@ -1,5 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Factory,
   Settings,
@@ -24,7 +25,8 @@ interface MenuItem {
   id: number;
   name: string;
   path: string;
-  icon: any; // Lucide icon tipi
+  icon: any;
+  roles?: ('mudur' | 'personel' | 'operator')[]; // Bu menüyü görebilecek roller
 }
 
 const menuItems: MenuItem[] = [
@@ -34,12 +36,21 @@ const menuItems: MenuItem[] = [
   { id: 3, name: "Makine", path: "/makine", icon: Settings },
   { id: 4, name: "Stoklar", path: "/stoklar", icon: Package },
   { id: 5, name: "Siparişler", path: "/siparisler", icon: ShoppingCart },
-  { id: 6, name: "Finansal Özet", path: "/finansal", icon: DollarSign },
+  { id: 6, name: "Finansal Özet", path: "/finansal", icon: DollarSign, roles: ['mudur'] }, // Sadece müdür görebilir
 ];
 
 export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
+  const { userRole } = useAuth();
+
+  // Rol bazlı menü filtreleme
+  const visibleMenuItems = menuItems.filter(item => {
+    // Eğer roles tanımlı değilse, herkes görebilir
+    if (!item.roles) return true;
+    // Kullanıcının rolü listede var mı?
+    return userRole && item.roles.includes(userRole);
+  });
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-gradient-to-b from-[#0A1128] to-[#0D1533]">
@@ -47,7 +58,7 @@ export function AppSidebar() {
         <SidebarGroup className="pt-6">
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {visibleMenuItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.id}>
